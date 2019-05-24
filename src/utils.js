@@ -1,7 +1,7 @@
-import _ from "lodash";
+import {find,isPlainObject,isArray,each} from "lodash";
 
 export function _memoRemoteByInstanceId( memo, instanceId ) {
-	var proxy = _.find( this.remotes, function( x ) {
+	var proxy = find( this.remotes, function( x ) {
 		return x.instanceId === instanceId;
 	} );
 	if ( proxy ) {
@@ -11,7 +11,7 @@ export function _memoRemoteByInstanceId( memo, instanceId ) {
 }
 
 export function _memoRemoteByTarget( memo, tgt ) {
-	var proxy = _.find( this.remotes, function( x ) {
+	var proxy = find( this.remotes, function( x ) {
 		return x.target === tgt;
 	} );
 	if ( proxy ) {
@@ -29,17 +29,17 @@ export function safeSerialize( envelope ) {
 		if ( typeof val === "function" ) {
 			delete envelope[ key ];
 		}
-		if ( _.isPlainObject( val ) ) {
+		if ( isPlainObject( val ) ) {
 			safeSerialize( val );
 		}
-		if ( _.isArray( val ) ) {
-			_.each( val, safeSerialize );
+		if ( isArray( val ) ) {
+			each( val, safeSerialize );
 		}
 	}
 	return envelope;
 }
 
-export var entries = function* ( obj ) {
+export var entries = function*( obj ) {
 	if ( [ "object", "function" ].indexOf( typeof obj ) === -1 ) {
 		obj = {};
 	}

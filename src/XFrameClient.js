@@ -1,21 +1,21 @@
 import postal from "postal";
-import _ from "lodash";
+import {contains} from "lodash";
 import { state, env } from "./state";
 
 export default class XFrameClient extends postal.fedx.FederationClient {
 
 	constructor( ...args ) {
-		this.transportName = "xframe";
 		super( ...args );
+		this.transportName = "xframe";
 	}
 
 	shouldProcess() {
 		const hasDomainFilters = !!state.config.allowedOrigins.length;
 		return state.config.enabled &&
 			// another frame/window
-			( ( this.options.origin === "*" || ( hasDomainFilters && _.contains( state.config.allowedOrigins, this.options.origin ) || !hasDomainFilters ) ) ||
+			( ( this.options.origin === "*" || ( hasDomainFilters && contains( state.config.allowedOrigins, this.options.origin ) || !hasDomainFilters ) ) ||
 			// worker
-			( this.options.isWorker && _.contains( state.workers, this.target ) ) ||
+			( this.options.isWorker && contains( state.workers, this.target ) ) ||
 			// we are in a worker
 			env.isWorker );
 	}

@@ -1,4 +1,4 @@
-import _ from "lodash";
+import {include,defaults,extend,map,find,each,cloneDeep,reduce,isArray,without} from "lodash";
 import postal from "postal";
 import {
 	_memoRemoteByInstanceId,
@@ -14,7 +14,7 @@ function listener() {
 }
 
 function listenToWorker( worker ) {
-	if ( !_.include( state.workers, worker ) ) {
+	if ( !include( state.workers, worker ) ) {
 		worker.addEventListener( "message", listener );
 		state.workers.push( worker );
 	}
@@ -38,12 +38,12 @@ const plugin = postal.fedx.transports.xframe = {
 	XFrameClient: XFrameClient,
 	configure: function( cfg ) {
 		if ( cfg ) {
-			state.config = _.defaults( _.extend( state.config, cfg ), state.defaults );
+			state.config = defaults( extend( state.config, cfg ), state.defaults );
 		}
 		return state.config;
 	},
 	clearConfiguration: function() {
-		state.config = _.extend( {}, state.defaults );
+		state.config = extend( {}, state.defaults );
 	},
 	//find all iFrames and the parent window if in an iframe
 	getTargets: env.isWorker ? function() {
@@ -53,7 +53,7 @@ const plugin = postal.fedx.transports.xframe = {
 			}
 		} ]; // TO-DO: look into this...
 	} : function() {
-		const targets = _.map( document.getElementsByTagName( "iframe" ), function( i ) {
+		const targets = map( document.getElementsByTagName( "iframe" ), function( i ) {
 			var urlHack = document.createElement( "a" );
 			urlHack.href = i.src;
 			let origin = urlHack.protocol + "//" + urlHack.host;
@@ -104,7 +104,7 @@ const plugin = postal.fedx.transports.xframe = {
 		const source = event.source || event.currentTarget;
 		const parsed = this.unwrapFromTransport( event.data );
 		if ( parsed.postal ) {
-			var remote = _.find( this.remotes, function( x ) {
+			var remote = find( this.remotes, function( x ) {
 				return x.target === source;
 			} );
 			if ( !remote ) {
@@ -117,9 +117,9 @@ const plugin = postal.fedx.transports.xframe = {
 	sendMessage: function( env ) {
 		let envelope = env;
 		if ( state.config.safeSerialize ) {
-			envelope = safeSerialize( _.cloneDeep( env ) );
+			envelope = safeSerialize( cloneDeep( env ) );
 		}
-		_.each( this.remotes, function( remote ) {
+		each( this.remotes, function( remote ) {
 			remote.sendMessage( envelope );
 		} );
 	},
@@ -127,26 +127,26 @@ const plugin = postal.fedx.transports.xframe = {
 		options = options || {};
 		const clients = options.instanceId ?
 			// an instanceId value or array was provided, let's get the client proxy instances for the id(s)
-			_.reduce( _.isArray( options.instanceId ) ? options.instanceId : [ options.instanceId ], _memoRemoteByInstanceId, [], this ) :
+			reduce( isArray( options.instanceId ) ? options.instanceId : [ options.instanceId ], _memoRemoteByInstanceId, [], this ) :
 			// Ok so we don't have instanceId(s), let's try target(s)
 			options.target ?
 				// Ok, so we have a targets array, we need to iterate over it and get a list of the proxy/client instances
-				_.reduce( _.isArray( options.target ) ? options.target : [ options.target ], _memoRemoteByTarget, [], this ) :
+				reduce( isArray( options.target ) ? options.target : [ options.target ], _memoRemoteByTarget, [], this ) :
 				// aww, heck - we don't have instanceId(s) or target(s), so it's ALL THE REMOTES
 				this.remotes;
 		if ( !options.doNotNotify ) {
-			_.each( clients, _disconnectClient, this );
+			each( clients, _disconnectClient, this );
 		}
-		this.remotes = _.without.apply( null, [ this.remotes ].concat( clients ) );
+		this.remotes = without.apply( null, [ this.remotes ].concat( clients ) );
 	},
 	signalReady: function( targets, callback ) {
-		targets = _.isArray( targets ) ? targets : [ targets ];
+		targets = isArray( targets ) ? targets : [ targets ];
 		targets = targets.length ? targets : this.getTargets();
 		callback = callback || NO_OP;
-		_.each( targets, function( def ) {
+		each( targets, function( def ) {
 			if ( def.target ) {
 				def.origin = def.origin || state.config.defaultOriginUrl;
-				let remote = _.find( this.remotes, function( x ) {
+				let remote = find( this.remotes, function( x ) {
 					return x.target === def.target;
 				} );
 				if ( !remote ) {
@@ -171,7 +171,7 @@ const plugin = postal.fedx.transports.xframe = {
 	stopListeningToWorker: function( worker ) {
 		if ( worker ) {
 			worker.removeEventListener( "message", listener );
-			state.workers = _.without( state.workers, worker );
+			state.workers = without( state.workers, worker );
 		} else {
 			while ( state.workers.length ) {
 				state.workers.pop().removeEventListener( "message", listener );

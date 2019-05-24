@@ -1,4 +1,4 @@
-import _ from "lodash";
+import {extend} from "lodash";
 
 export let env = {
 	origin: location.origin || location.protocol + "//" + location.host,
@@ -22,6 +22,6 @@ const defaults = {
 
 export let state = {
 	workers: [],
-	config: _.extend( {}, defaults ),
+	config: extend( {}, defaults ),
 	defaults
 };
